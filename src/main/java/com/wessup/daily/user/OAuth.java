@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class Authorization {
-    private static final Logger logger = LoggerFactory.getLogger(Authorization.class);
+public class OAuth {
+    private static final Logger logger = LoggerFactory.getLogger(OAuth.class);
 
     @Value("${github.client.id}")
     private String clientID;
