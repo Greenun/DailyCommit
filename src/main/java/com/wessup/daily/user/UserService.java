@@ -13,6 +13,6 @@ public class UserService {
     }
 
     public void auth(String userId){
-        this.auth.githubOAuth();
+        this.auth.githubOAuth(userId);
     }
 }
