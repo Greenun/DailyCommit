@@ -3,12 +3,11 @@ package com.wessup.daily.user;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
-@RestController
+//@RestController
+@Controller
 @RequestMapping("/")
 public class UserController {
 
@@ -22,15 +21,32 @@ public class UserController {
     }
 
     @GetMapping("/auth")
-    public String testAuth(@RequestParam("id") String userId){
-        this.userService.auth(userId);
-        return "test";
+    public String testAuth(){
+        String body = this.userService.auth();
+        return "redirect:"+body;
     }
 
-    @RequestMapping("/auth/github/login")
-    public String testRedirect(@RequestParam("access_token") String token){
+    @GetMapping("/auth/github/login")
+    @ResponseBody
+    public String testRedirect(@RequestParam("code") String code){
         logger.info("redirect!");
-        logger.info(token);
-        return "Test!";
+        String response = this.userService.access(code);
+        return response;
     }
+
+    @PostMapping("/auth/github/login")
+    public String testPost(@RequestBody String body){
+        logger.info(body);
+        return "Post Test";
+    }
+
+    @GetMapping("/commits")
+    @ResponseBody
+    public String testCommit(@RequestParam("username") String username, @RequestParam("token") String token) {
+        // param --> temp
+        // token from database..
+        String response = this.userService.commits(username, token);
+        return response;
+    }
+
 }
