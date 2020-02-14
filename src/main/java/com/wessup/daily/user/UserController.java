@@ -45,8 +45,10 @@ public class UserController {
     public String testCommit(@RequestParam("username") String username, @RequestParam("token") String token) {
         // param --> temp
         // token from database..
-        String response = this.userService.commits(username, token);
-        return response;
+//        String response = this.userService.commits(username, token);
+//        return response;
+        this.userService.testCommit(username, token);
+        return "test commit";
     }
 
 }

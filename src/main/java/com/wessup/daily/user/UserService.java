@@ -26,4 +26,8 @@ public class UserService {
     public String commits(String username, String token) {
         return this.userActivity.allEvents(username, token);
     }
+
+    public void testCommit(String username, String token) {
+        this.userActivity.commitEvents(username, token);
+    }
 }

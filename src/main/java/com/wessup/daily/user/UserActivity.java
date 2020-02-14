@@ -15,6 +15,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -43,26 +46,35 @@ public class UserActivity {
 
         ResponseEntity<String> response =
                 this.restTemplate.exchange((this.apiURI + suffix), HttpMethod.GET, request, String.class);
-
+        this.logger.info(response.getBody());
         return response.getBody();
     }
 
-    public MultiValueMap<Object, Object> commitEvents(String username, String token) {
+    public void commitEvents(String username, String token) {
+        // MultiValueMap<Object, Object>
         String events = this.allEvents(username, token);
         ObjectMapper mapper = new ObjectMapper();
-
-        MultiValueMap<Object, Object> json = new LinkedMultiValueMap();
+        if (events == "[]") {
+            this.logger.error("Unavailable Response");
+        }
+//        MultiValueMap<Object, Object> json = new LinkedMultiValueMap();
         try {
-            json = mapper.readValue(events, LinkedMultiValueMap.class);
+//            json = mapper.readValue(events, LinkedMultiValueMap.class);
+            List<HashMap<Object, Object>> jsonList = Arrays.asList(mapper.readValue(events, HashMap[].class));
+//            System.out.println(json);
+            for (HashMap<Object, Object> json: jsonList) {
+                String date = json.get("created_at").toString();
+                // Compare date with today
+            }
+            // extract commit info
+            List<HashMap<String, String>> today;
         }
         catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        if (json.isEmpty()) {
-            this.logger.error("Parsing Json Response failed");
-        }
-        return json;
+
+//        return json;
     }
 }
