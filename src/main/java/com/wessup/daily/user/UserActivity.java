@@ -15,6 +15,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -57,17 +59,26 @@ public class UserActivity {
         if (events == "[]") {
             this.logger.error("Unavailable Response");
         }
+        LocalDateTime today = LocalDateTime.now();
+        this.logger.info(today.toString());
 //        MultiValueMap<Object, Object> json = new LinkedMultiValueMap();
+        // MultiValueMap - jackson parsing error
         try {
-//            json = mapper.readValue(events, LinkedMultiValueMap.class);
+            // json = mapper.readValue(events, LinkedMultiValueMap.class);
+            // System.out.println(json);
             List<HashMap<Object, Object>> jsonList = Arrays.asList(mapper.readValue(events, HashMap[].class));
-//            System.out.println(json);
             for (HashMap<Object, Object> json: jsonList) {
-                String date = json.get("created_at").toString();
+                String dateString = json.get("created_at").toString();
                 // Compare date with today
+                this.logger.info(dateString);
+                // ISO8601
+                LocalDateTime temp = LocalDateTime.parse(dateString,
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
+
+                System.out.println(temp);
             }
             // extract commit info
-            List<HashMap<String, String>> today;
+            List<HashMap<String, String>> temp;
         }
         catch (JsonMappingException e) {
             e.printStackTrace();
