@@ -30,4 +30,6 @@ public class UserService {
     public void testCommit(String username, String token) {
         this.userActivity.commitEvents(username, token);
     }
+
+
 }

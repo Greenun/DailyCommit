@@ -10,17 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class UserActivity {
@@ -52,40 +46,39 @@ public class UserActivity {
         return response.getBody();
     }
 
-    public void commitEvents(String username, String token) {
+    public List<HashMap<String, String>> commitEvents(String username, String token) {
         // MultiValueMap<Object, Object>
         String events = this.allEvents(username, token);
         ObjectMapper mapper = new ObjectMapper();
+        List<HashMap<String, String>> todayCommits = new ArrayList<HashMap<String, String>>();
         if (events == "[]") {
             this.logger.error("Unavailable Response");
         }
-        LocalDateTime today = LocalDateTime.now();
+        LocalDate today = LocalDate.now();
         this.logger.info(today.toString());
 //        MultiValueMap<Object, Object> json = new LinkedMultiValueMap();
         // MultiValueMap - jackson parsing error
         try {
-            // json = mapper.readValue(events, LinkedMultiValueMap.class);
-            // System.out.println(json);
-            List<HashMap<Object, Object>> jsonList = Arrays.asList(mapper.readValue(events, HashMap[].class));
-            for (HashMap<Object, Object> json: jsonList) {
+            // extract commit info
+            List<HashMap<String, String>> jsonList = Arrays.asList(mapper.readValue(events, HashMap[].class));
+            for (HashMap<String, String> json: jsonList) {
                 String dateString = json.get("created_at").toString();
                 // Compare date with today
                 this.logger.info(dateString);
                 // ISO8601
-                LocalDateTime temp = LocalDateTime.parse(dateString,
+                LocalDate date = LocalDate.parse(dateString,
                         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
-
-                System.out.println(temp);
+                if (date.equals(today)) {
+                    todayCommits.add(json);
+                }
             }
-            // extract commit info
-            List<HashMap<String, String>> temp;
         }
         catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+        } finally {
+            return todayCommits;
         }
-
-//        return json;
     }
 }
