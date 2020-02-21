@@ -1,4 +1,4 @@
-package com.wessup.daily.user;
+package com.wessup.daily.user.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -33,7 +33,6 @@ public class UserActivity {
     }
 
     public String allEvents(String username, String token) {
-        // commits 분류 필요
         String suffix = "/users/" + username + "/events";
         HttpHeaders headers = new HttpHeaders();
 
@@ -42,7 +41,7 @@ public class UserActivity {
 
         ResponseEntity<String> response =
                 this.restTemplate.exchange((this.apiURI + suffix), HttpMethod.GET, request, String.class);
-        this.logger.info(response.getBody());
+        // this.logger.info(response.getBody());
         return response.getBody();
     }
 

@@ -1,9 +1,12 @@
-package com.wessup.daily.notice;
+package com.wessup.daily.notice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
@@ -21,7 +24,10 @@ public class Sender {
         this.emailSender = emailSender;
     }
 
-    public void sendMail(String userEmail) throws MessagingException {
+    @Async
+    public ListenableFuture<MimeMessage> sendMail(String userEmail) throws MessagingException, InterruptedException {
+        Thread.sleep(10000);
+
         MimeMessage message = this.emailSender.createMimeMessage();
         message.setSubject("Test Email Send");
         message.setFrom(new InternetAddress("iopuy1234@naver.com"));
@@ -30,6 +36,8 @@ public class Sender {
         message.setSentDate(new Date());
 
         this.emailSender.send(message);
+        return new AsyncResult<>(message);
+
     }
 
     public void sendMail(String userEmail, File attachments) throws MessagingException{

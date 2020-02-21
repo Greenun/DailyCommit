@@ -1,5 +1,6 @@
-package com.wessup.daily.user;
+package com.wessup.daily.user.controller;
 
+import com.wessup.daily.user.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
