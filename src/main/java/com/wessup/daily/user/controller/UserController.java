@@ -35,12 +35,6 @@ public class UserController {
         return response;
     }
 
-    @PostMapping("/auth/github/login")
-    public String testPost(@RequestBody String body){
-        logger.info(body);
-        return "Post Test";
-    }
-
     @GetMapping("/commits")
     @ResponseBody
     public String testCommit(@RequestParam("username") String username, @RequestParam("token") String token) {

@@ -12,6 +12,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 // rest template http request
 // handshake everytime...
@@ -71,9 +73,25 @@ public class OAuth {
                 .post(URI.create(this.tokenURL))
                 .accept(MediaType.APPLICATION_JSON)
                 .body(body);
-        String response = this.restTemplate.postForObject(this.tokenURL, request, String.class);
-        logger.info(response);
-        return response;
+        HashMap<String, String> info = this.restTemplate.postForObject(this.tokenURL, request, HashMap.class);
+
+        logger.info(info.get("access_token"));
+        this.getUserInfo(info.get("access_token"));
+        return info.get("access_token");
+    }
+
+    public Map<String ,String> getUserInfo(String token) {
+        String url = "https://api.github.com/user";
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.add("Authorization", "token " + token);
+        HttpEntity<String> request = new HttpEntity("", headers);
+
+        ResponseEntity<HashMap> response =
+                this.restTemplate.exchange(url, HttpMethod.GET, request, HashMap.class);
+        HashMap<String ,String> userInfo = response.getBody();
+        logger.info(userInfo.get("access_token"));
+        return userInfo;
     }
 }
 
