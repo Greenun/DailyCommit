@@ -1,5 +1,7 @@
 package com.wessup.daily.user.service;
 
+import com.wessup.daily.user.entity.User;
+import com.wessup.daily.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +25,13 @@ import java.util.Map;
 public class OAuth {
     private static final Logger logger = LoggerFactory.getLogger(OAuth.class);
 
+    private UserRepository userRepository;
+
     private final RestTemplate restTemplate;
 
     @Autowired
-    public OAuth(RestTemplateBuilder restTemplateBuilder){
+    public OAuth(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository){
+        this.userRepository = userRepository;
         this.restTemplate = restTemplateBuilder.build();
     }
 
@@ -42,6 +47,9 @@ public class OAuth {
     @Value("${github.oauth.access}")
     private String tokenURL;
 
+    @Value("${github.api}")
+    private String apiURL;
+
     public String githubConfirm(){
         String url = this.github + "?client_id=" + this.clientID;
         // scope setting
@@ -50,18 +58,20 @@ public class OAuth {
         logger.info(url);
 
         return url;
-//        String response = this.restTemplate.getForObject(url, String.class);
-//        ClientHttpResponse response = this.restTemplate.getForObject(url, ClientHttpResponse.class);
-//        HttpEntity<String> entity = new HttpEntity<String>("");
-//        ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-//        HttpHeaders headers = response.getHeaders();
-//        Set<String> keys = headers.keySet();
-//        for (String key: keys) {
-//            logger.info(key + ": " + String.valueOf(headers.get(key)));
-//        }
-//        String body = response.getBody();
-//        logger.info(body);
-//        return body;
+    }
+
+    protected HttpHeaders setHeaders(String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "token " + token);
+        return headers;
+    }
+
+    protected ResponseEntity<HashMap> apiExchange(String url, String token, HttpMethod method) {
+        HttpHeaders headers = this.setHeaders(token);
+        HttpEntity<String> request = new HttpEntity("", headers);
+        ResponseEntity<HashMap> response = this.restTemplate.exchange(url, method, request, HashMap.class);
+
+        return response;
     }
 
     public String githubAccess(String code){
@@ -81,17 +91,34 @@ public class OAuth {
     }
 
     public Map<String ,String> getUserInfo(String token) {
-        String url = "https://api.github.com/user";
-        HttpHeaders headers = new HttpHeaders();
-
-        headers.add("Authorization", "token " + token);
-        HttpEntity<String> request = new HttpEntity("", headers);
-
-        ResponseEntity<HashMap> response =
-                this.restTemplate.exchange(url, HttpMethod.GET, request, HashMap.class);
+        String suffix = "/user";
+        ResponseEntity<HashMap> response = this.apiExchange(this.apiURL + suffix, token, HttpMethod.GET);
+//        HttpHeaders headers = this.setHeaders(token);
+//
+//        HttpEntity<String> request = new HttpEntity("", headers);
+//
+//        ResponseEntity<HashMap> response =
+//                this.restTemplate.exchange(this.apiURL + suffix, HttpMethod.GET, request, HashMap.class);
         HashMap<String ,String> userInfo = response.getBody();
         logger.info(userInfo.get("access_token"));
+        userInfo.put("token", token);
+        // one more request with username (for email)
         return userInfo;
+    }
+
+    public Map<String, String> getInfoByName(String username, String token) {
+        String suffix = "/users/" + username;
+        ResponseEntity<HashMap> response = this.apiExchange(this.apiURL + suffix, token, HttpMethod.GET);
+
+        logger.info(response.getBody().toString()); // temp (for test)
+        return response.getBody();
+    }
+
+    public void saveUser(Map<String, String> info) {
+        String username = info.get("login");
+        String token = info.get("token");
+        User user = User.builder().email(info.get("")).username(username).token(token).build();
+
     }
 }
 
