@@ -1,6 +1,7 @@
 package com.wessup.daily.user.entity;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -24,4 +25,9 @@ public class PushAllowed {
     @Column(name="created_time")
     @CreationTimestamp
     private LocalDateTime createdTime;
+
+    @Builder
+    public PushAllowed(User user) {
+        this.user = user;
+    }
 }

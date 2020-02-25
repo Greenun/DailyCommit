@@ -3,6 +3,8 @@ package com.wessup.daily.user.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wessup.daily.user.entity.User;
+import com.wessup.daily.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +29,18 @@ public class UserActivity {
 
     private RestTemplate restTemplate;
 
+    private UserRepository userRepository;
+
     @Autowired
-    public UserActivity(RestTemplateBuilder restTemplateBuilder) {
+    public UserActivity(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository) {
         this.restTemplate = restTemplateBuilder.build();
         this.logger = LoggerFactory.getLogger(UserActivity.class);
+        this.userRepository = userRepository;
+    }
+
+    protected String getToken(String username) {
+        User user = this.userRepository.findByUsername(username);
+        return user.getToken();
     }
 
     public String allEvents(String username, String token) {
@@ -46,8 +56,8 @@ public class UserActivity {
         return response.getBody();
     }
 
-    public List<HashMap<String, String>> commitEvents(String username, String token) {
-        // MultiValueMap<Object, Object>
+    public List<HashMap<String, String>> commitEvents(String username) {
+        String token = this.getToken(username);
         String events = this.allEvents(username, token);
         ObjectMapper mapper = new ObjectMapper();
         List<HashMap<String, String>> todayCommits = new ArrayList<HashMap<String, String>>();

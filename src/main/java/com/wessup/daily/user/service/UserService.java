@@ -1,5 +1,6 @@
 package com.wessup.daily.user.service;
 
+import com.wessup.daily.user.entity.PushAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,15 @@ public class UserService {
     }
 
     public void testCommit(String username, String token) {
-        this.userActivity.commitEvents(username, token);
+        this.userActivity.commitEvents(username);
+    }
+
+    public void todayCommit(String username) {
+        this.userActivity.commitEvents(username);
+    }
+
+    public void allowPush(String username) {
+        // set return
     }
 
 

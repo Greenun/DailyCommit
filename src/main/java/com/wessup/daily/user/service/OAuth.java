@@ -1,6 +1,8 @@
 package com.wessup.daily.user.service;
 
+import com.wessup.daily.user.entity.PushAllowed;
 import com.wessup.daily.user.entity.User;
+import com.wessup.daily.user.repository.PushAllowedRepository;
 import com.wessup.daily.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +29,15 @@ public class OAuth {
 
     private UserRepository userRepository;
 
+    private PushAllowedRepository paRepository;
+
     private final RestTemplate restTemplate;
 
     @Autowired
-    public OAuth(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository){
+    public OAuth(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository,
+                 PushAllowedRepository paRepository){
         this.userRepository = userRepository;
+        this.paRepository = paRepository;
         this.restTemplate = restTemplateBuilder.build();
     }
 
@@ -117,8 +123,14 @@ public class OAuth {
     public void saveUser(Map<String, String> info) {
         String username = info.get("login");
         String token = info.get("token");
-        User user = User.builder().email(info.get("")).username(username).token(token).build();
+        User user = User.builder().email(info.get("email")).username(username).token(token).build();
 
+    }
+
+    public void savePush(String username) {
+        User user = this.userRepository.findByUsername(username);
+        PushAllowed pa = PushAllowed.builder().user(user).build();
+        this.paRepository.save(pa);
     }
 }
 

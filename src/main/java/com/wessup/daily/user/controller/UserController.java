@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+// response type - json needs.
+
 //@RestController
 @Controller
 @RequestMapping("/")
@@ -35,7 +37,7 @@ public class UserController {
         return response;
     }
 
-    @GetMapping("/commits")
+    @GetMapping("/test/commits")
     @ResponseBody
     public String testCommit(@RequestParam("username") String username, @RequestParam("token") String token) {
         // param --> temp
@@ -44,6 +46,20 @@ public class UserController {
 //        return response;
         this.userService.testCommit(username, token);
         return "test commit";
+    }
+
+    @GetMapping("/commit")
+    @ResponseBody
+    public String getCommit(@RequestParam("username") String username) {
+        this.userService.todayCommit(username);
+        return "";
+    }
+
+    @GetMapping("/allow/push/{username}")
+    @ResponseBody
+    public String allowPush(@PathVariable("username") String username) {
+        this.userService.allowPush(username);
+        return "save";
     }
 
 }
