@@ -26,7 +26,6 @@ public class Sender {
 
     @Async
     public ListenableFuture<MimeMessage> sendMail(String userEmail) throws MessagingException, InterruptedException {
-        Thread.sleep(10000);
 
         MimeMessage message = this.emailSender.createMimeMessage();
         message.setSubject("Test Email Send");

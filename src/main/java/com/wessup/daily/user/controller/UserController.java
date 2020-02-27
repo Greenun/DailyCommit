@@ -48,6 +48,13 @@ public class UserController {
         return "test commit";
     }
 
+    @GetMapping("/test/info")
+    @ResponseBody
+    public String testInfo(@RequestParam("username") String username, @RequestParam("token") String token) {
+        this.userService.testInfo(username, token);
+        return "test info";
+    }
+
     @GetMapping("/commit")
     @ResponseBody
     public String getCommit(@RequestParam("username") String username) {

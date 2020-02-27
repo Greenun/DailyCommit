@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 // rest template http request
@@ -72,10 +73,10 @@ public class OAuth {
         return headers;
     }
 
-    protected ResponseEntity<HashMap> apiExchange(String url, String token, HttpMethod method) {
+    protected ResponseEntity apiExchange(String url, String token, HttpMethod method, Class c) {
         HttpHeaders headers = this.setHeaders(token);
         HttpEntity<String> request = new HttpEntity("", headers);
-        ResponseEntity<HashMap> response = this.restTemplate.exchange(url, method, request, HashMap.class);
+        ResponseEntity<Class> response = this.restTemplate.exchange(url, method, request, c);
 
         return response;
     }
@@ -98,33 +99,45 @@ public class OAuth {
 
     public Map<String ,String> getUserInfo(String token) {
         String suffix = "/user";
-        ResponseEntity<HashMap> response = this.apiExchange(this.apiURL + suffix, token, HttpMethod.GET);
-//        HttpHeaders headers = this.setHeaders(token);
-//
-//        HttpEntity<String> request = new HttpEntity("", headers);
-//
-//        ResponseEntity<HashMap> response =
-//                this.restTemplate.exchange(this.apiURL + suffix, HttpMethod.GET, request, HashMap.class);
+        ResponseEntity<HashMap> response = this.apiExchange(this.apiURL + suffix, token, HttpMethod.GET, HashMap.class);
+
         HashMap<String ,String> userInfo = response.getBody();
         logger.info(userInfo.get("access_token"));
         userInfo.put("token", token);
         // one more request with username (for email)
+        String email = this.getEmailByName(userInfo.get("login"), token);
+        userInfo.put("email", email);
+
         return userInfo;
     }
 
-    public Map<String, String> getInfoByName(String username, String token) {
-        String suffix = "/users/" + username;
-        ResponseEntity<HashMap> response = this.apiExchange(this.apiURL + suffix, token, HttpMethod.GET);
+    public String getEmailByName(String username, String token) {
+        // Map<String, String>
+        // bad request 처리 필요
+        String suffix = "/user/emails";
+        ResponseEntity<List> response = this.apiExchange(this.apiURL + suffix, token, HttpMethod.GET, List.class);
 
-        logger.info(response.getBody().toString()); // temp (for test)
-        return response.getBody();
+        logger.info(response.getBody().get(0).toString()); // temp (for test)
+        HashMap<String, String> info = (HashMap<String, String>) response.getBody().get(0);
+        String email = info.get("email");
+        if (email == null) {
+            // throw error
+            return null;
+        }
+        return email;
     }
 
     public void saveUser(Map<String, String> info) {
         String username = info.get("login");
         String token = info.get("token");
-        User user = User.builder().email(info.get("email")).username(username).token(token).build();
-
+        User user = User.builder()
+                .email(info.get("email"))
+                .username(username)
+                .token(token)
+                .nodeId(info.get("node_id"))
+                .userId(Long.parseLong(info.get("id")))
+                .build();
+        this.userRepository.save(user);
     }
 
     public void savePush(String username) {

@@ -32,6 +32,10 @@ public class UserService {
         this.userActivity.commitEvents(username);
     }
 
+    public void testInfo(String username, String token) {
+        this.auth.getEmailByName(username, token);
+    }
+
     public void todayCommit(String username) {
         this.userActivity.commitEvents(username);
     }
