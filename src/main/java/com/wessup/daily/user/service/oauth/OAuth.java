@@ -1,4 +1,4 @@
-package com.wessup.daily.user.service;
+package com.wessup.daily.user.service.oauth;
 
 import com.wessup.daily.user.entity.PushAllowed;
 import com.wessup.daily.user.entity.User;
@@ -23,6 +23,7 @@ import java.util.Map;
 // rest template http request
 // handshake everytime...
 // https://a1010100z.tistory.com/entry/SpringBoot-RestTemplate-vs-Webclient%EC%9E%91%EC%84%B1%EC%A4%91
+// front : login redirect + transfer token to backend(in redirected url)
 
 @Component
 public class OAuth {
@@ -34,13 +35,7 @@ public class OAuth {
 
     private final RestTemplate restTemplate;
 
-    @Autowired
-    public OAuth(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository,
-                 PushAllowedRepository paRepository){
-        this.userRepository = userRepository;
-        this.paRepository = paRepository;
-        this.restTemplate = restTemplateBuilder.build();
-    }
+    private OAuthAPI oAuthAPI;
 
     @Value("${github.client.id}")
     private String clientID;
@@ -57,13 +52,19 @@ public class OAuth {
     @Value("${github.api}")
     private String apiURL;
 
+    @Autowired
+    public OAuth(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository,
+                 PushAllowedRepository paRepository){
+        this.userRepository = userRepository;
+        this.paRepository = paRepository;
+        this.restTemplate = restTemplateBuilder.build();
+        this.oAuthAPI = new OAuthAPI(this.clientID);
+    }
+
     public String githubConfirm(){
         String url = this.github + "?client_id=" + this.clientID;
         // scope setting
         url += "&scope=user%20repo";
-
-        logger.info(url);
-
         return url;
     }
 
@@ -144,6 +145,28 @@ public class OAuth {
         User user = this.userRepository.findByUsername(username);
         PushAllowed pa = PushAllowed.builder().user(user).build();
         this.paRepository.save(pa);
+    }
+
+    public boolean revokeToken(String username) {
+        // retrieve token by username (order by time desc)
+        User user = this.userRepository.findByUsername(username);
+        String token = user.getToken();
+
+        OAuthReturnStatus response = this.oAuthAPI.revokeToken(this.restTemplate, this.apiURL, token);
+        if (response.getSuccess()) {
+            logger.info(response.getMessage());
+            logger.info(response.getBody().toString());
+        }
+        else {
+            logger.info(response.getMessage());
+        }
+        return response.getSuccess();
+    }
+
+    public void checkToken(String username) {
+        User user = this.userRepository.findByUsername(username);
+        String token = user.getToken();
+
     }
 }
 

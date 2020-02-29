@@ -1,6 +1,7 @@
 package com.wessup.daily.user.service;
 
-import com.wessup.daily.user.entity.PushAllowed;
+import com.wessup.daily.user.service.oauth.OAuth;
+import com.wessup.daily.user.service.users.UserActivity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
