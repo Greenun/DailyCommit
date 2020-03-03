@@ -63,6 +63,7 @@ public class UserActivity {
         if (events == "[]") {
             this.logger.error("Unavailable Response");
         }
+
         LocalDate today = LocalDate.now();
         this.logger.info(today.toString());
 //        MultiValueMap<Object, Object> json = new LinkedMultiValueMap();
