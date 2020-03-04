@@ -3,6 +3,7 @@ package com.wessup.daily.user.service.users;
 import com.wessup.daily.user.service.oauth.BasicAuth;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import java.util.Map;
 // https://developer.github.com/v3/users/emails/
 // https://developer.github.com/v3/users/
 
+@Component
 public class UsersAPI extends BasicAuth {
     private String baseSuffix;
 
@@ -23,6 +25,10 @@ public class UsersAPI extends BasicAuth {
         Map<String ,String> userInfo = this.getUserInfo(restTemplate, apiURL, token);
         // one more request with username (for email)
         String email = this.getEmailByName(restTemplate, apiURL + baseSuffix, token);
+        if (email == null) {
+            // temp (throw error)
+            return null;
+        }
         userInfo.put("email", email);
 
         return userInfo;

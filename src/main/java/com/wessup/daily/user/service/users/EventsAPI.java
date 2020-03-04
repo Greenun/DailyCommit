@@ -5,6 +5,7 @@ package com.wessup.daily.user.service.users;
 import com.wessup.daily.user.service.oauth.BasicAuth;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class EventsAPI extends BasicAuth {
     private String baseSuffix;
 

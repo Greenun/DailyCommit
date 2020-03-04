@@ -3,7 +3,9 @@ package com.wessup.daily.user.service.users;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wessup.daily.user.entity.PushAllowed;
 import com.wessup.daily.user.entity.User;
+import com.wessup.daily.user.repository.PushAllowedRepository;
 import com.wessup.daily.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,22 +26,70 @@ public class UserActivity {
     private Logger logger;
 
     @Value("${github.api}")
-    private String apiURI;
+    private String apiURL;
 
     private RestTemplate restTemplate;
 
+    private PushAllowedRepository paRepository;
+
     private UserRepository userRepository;
 
+    private EventsAPI eventsAPI;
+
+    private UsersAPI usersAPI;
+
     @Autowired
-    public UserActivity(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository) {
+    public UserActivity(RestTemplateBuilder restTemplateBuilder,
+                        UserRepository userRepository, PushAllowedRepository paRepository) {
         this.restTemplate = restTemplateBuilder.build();
         this.logger = LoggerFactory.getLogger(UserActivity.class);
         this.userRepository = userRepository;
+        this.paRepository = paRepository;
     }
 
     protected String getToken(String username) {
         User user = this.userRepository.findByUsername(username);
         return user.getToken();
+    }
+
+    public boolean getUser(String token) {
+        try {
+            Map<String, String> userInfo = this.usersAPI.getUser(this.restTemplate, this.apiURL, token);
+            this.saveUser(userInfo, token);
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void allowPush(String username) {
+        this.savePush(username);
+    }
+
+    public boolean checkCommits(String username) {
+        String token = this.getToken(username);
+        List<Map<String, String>> todayCommits
+                = this.eventsAPI.commitEvents(this.restTemplate, this.apiURL, username, token);
+        if (todayCommits.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    protected void saveUser(Map<String, String> userInfo, String token) {
+        User user = User.builder().userId(Long.parseLong(userInfo.get("id")))
+                    .email(userInfo.get("email"))
+                    .nodeId(userInfo.get("node_id")).token(token)
+                    .username(userInfo.get("login")).build();
+        this.userRepository.save(user);
+    }
+
+    protected void savePush(String username) {
+        User user = this.userRepository.findByUsername(username);
+        PushAllowed pa = PushAllowed.builder()
+                .user(user).build();
+        this.paRepository.save(pa);
     }
 
     public String allEvents(String username, String token) {
@@ -50,7 +100,7 @@ public class UserActivity {
         HttpEntity<String> request = new HttpEntity<String>("", headers);
 
         ResponseEntity<String> response =
-                this.restTemplate.exchange((this.apiURI + suffix), HttpMethod.GET, request, String.class);
+                this.restTemplate.exchange((this.apiURL + suffix), HttpMethod.GET, request, String.class);
         // this.logger.info(response.getBody());
         return response.getBody();
     }

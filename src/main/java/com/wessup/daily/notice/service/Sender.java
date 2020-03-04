@@ -1,6 +1,7 @@
 package com.wessup.daily.notice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -19,6 +20,9 @@ public class Sender {
 
     private JavaMailSender emailSender;
 
+    @Value("${smtp.naver.id}")
+    private String smtpId;
+
     @Autowired
     public Sender(JavaMailSender emailSender) {
         this.emailSender = emailSender;
@@ -29,7 +33,7 @@ public class Sender {
 
         MimeMessage message = this.emailSender.createMimeMessage();
         message.setSubject("Test Email Send");
-        message.setFrom(new InternetAddress("iopuy1234@naver.com"));
+        message.setFrom(new InternetAddress(this.smtpId));
         message.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(userEmail));
         message.setText("Test Send");
         message.setSentDate(new Date());

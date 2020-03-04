@@ -54,11 +54,11 @@ public class OAuth {
 
     @Autowired
     public OAuth(RestTemplateBuilder restTemplateBuilder, UserRepository userRepository,
-                 PushAllowedRepository paRepository){
+                 PushAllowedRepository paRepository, OAuthAPI oAuthAPI){
         this.userRepository = userRepository;
         this.paRepository = paRepository;
         this.restTemplate = restTemplateBuilder.build();
-        this.oAuthAPI = new OAuthAPI(this.clientID);
+        this.oAuthAPI = oAuthAPI;
     }
 
     public String githubConfirm(){
@@ -66,20 +66,6 @@ public class OAuth {
         // scope setting
         url += "&scope=user%20repo";
         return url;
-    }
-
-    protected HttpHeaders setHeaders(String token) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "token " + token);
-        return headers;
-    }
-
-    protected ResponseEntity apiExchange(String url, String token, HttpMethod method, Class c) {
-        HttpHeaders headers = this.setHeaders(token);
-        HttpEntity<String> request = new HttpEntity("", headers);
-        ResponseEntity<Class> response = this.restTemplate.exchange(url, method, request, c);
-
-        return response;
     }
 
     public String githubAccess(String code){
@@ -97,6 +83,22 @@ public class OAuth {
         this.getUserInfo(info.get("access_token"));
         return info.get("access_token");
     }
+
+
+    protected HttpHeaders setHeaders(String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "token " + token);
+        return headers;
+    }
+
+    protected ResponseEntity apiExchange(String url, String token, HttpMethod method, Class c) {
+        HttpHeaders headers = this.setHeaders(token);
+        HttpEntity<String> request = new HttpEntity("", headers);
+        ResponseEntity<Class> response = this.restTemplate.exchange(url, method, request, c);
+
+        return response;
+    }
+
 
     public Map<String ,String> getUserInfo(String token) {
         String suffix = "/user";
@@ -163,10 +165,21 @@ public class OAuth {
         return response.getSuccess();
     }
 
-    public void checkToken(String username) {
+    public boolean checkToken(String username) throws Exception{
         User user = this.userRepository.findByUsername(username);
         String token = user.getToken();
 
+        OAuthReturnStatus response = this.oAuthAPI.checkToken(this.restTemplate, this.apiURL, token);
+        if ( response.getSuccess() ) {
+            logger.warn(response.getMessage());
+            logger.info(response.getBody().toString());
+            // 임시
+            throw new Exception("No Token Error");
+        }
+        else {
+            logger.info(response.getMessage());
+        }
+        return response.getSuccess();
     }
 }
 

@@ -17,12 +17,26 @@ public class UserService {
         this.userActivity = userActivity;
     }
 
-    public String auth(){
+    public String oAuthRedirect(){
         return this.auth.githubConfirm();
     }
 
-    public String access(String code) {
-        return this.auth.githubAccess(code);
+    public String oAuthLogin(String code) {
+        String token = this.auth.githubAccess(code);
+        boolean success = this.userActivity.getUser(token);
+        if (!success) {
+            // handle fail
+            return null;
+        }
+        return token;
+    }
+
+    public void todayCommit(String username) {
+        boolean check = this.userActivity.checkCommits(username);
+        if (!check) {
+            // add to mailing list
+        }
+        // pass
     }
 
     public String commits(String username, String token) {
@@ -35,10 +49,6 @@ public class UserService {
 
     public void testInfo(String username, String token) {
         this.auth.getEmailByName(username, token);
-    }
-
-    public void todayCommit(String username) {
-        this.userActivity.commitEvents(username);
     }
 
     public void allowPush(String username) {

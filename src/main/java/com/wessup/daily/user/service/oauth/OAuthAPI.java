@@ -1,16 +1,22 @@
 package com.wessup.daily.user.service.oauth;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 
+@Component
 public class OAuthAPI extends BasicAuth {
 
     private String suffix;
 
-    public OAuthAPI(String clientID) {
-        this.suffix = "/applications/" + clientID + "/token";
+    @Value("${github.client.id}")
+    private String clientID;
+
+    public OAuthAPI() {
+        this.suffix = "/applications/" + this.clientID + "/token";
     }
 
     public class RequestComponents {

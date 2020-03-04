@@ -25,15 +25,17 @@ public class UserController {
 
     @GetMapping("/auth")
     public String testAuth(){
-        String body = this.userService.auth();
+        String body = this.userService.oAuthRedirect();
         return "redirect:"+body;
     }
 
     @GetMapping("/auth/github/login")
     @ResponseBody
     public String testRedirect(@RequestParam("code") String code){
-        logger.info("redirect!");
-        String response = this.userService.access(code);
+        String response = this.userService.oAuthLogin(code);
+        if (response == null) {
+            return "Failed";
+        }
         return response;
     }
 
@@ -66,7 +68,7 @@ public class UserController {
     @ResponseBody
     public String allowPush(@PathVariable("username") String username) {
         this.userService.allowPush(username);
-        return "save";
+        return "saved";
     }
 
 }
