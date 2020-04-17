@@ -1,4 +1,4 @@
-package com.wessup.daily.configuration;
+package com.wessup.daily.notice.service.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

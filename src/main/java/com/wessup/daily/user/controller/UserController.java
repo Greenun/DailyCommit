@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-// response type - json needs.
 
-//@RestController
 @Controller
 @RequestMapping("/")
 public class UserController {
@@ -31,7 +29,7 @@ public class UserController {
 
     @GetMapping("/auth/github/login")
     @ResponseBody
-    public String testRedirect(@RequestParam("code") String code){
+    public String oauthRedirect(@RequestParam("code") String code){
         String response = this.userService.oAuthLogin(code);
         if (response == null) {
             return "Failed";
@@ -39,6 +37,7 @@ public class UserController {
         return response;
     }
 
+    // for test
     @GetMapping("/test/commits")
     @ResponseBody
     public String testCommit(@RequestParam("username") String username, @RequestParam("token") String token) {
@@ -50,18 +49,19 @@ public class UserController {
         return "test commit";
     }
 
-    @GetMapping("/test/info")
+    // for test
+    @GetMapping("/mail/send")
     @ResponseBody
-    public String testInfo(@RequestParam("username") String username, @RequestParam("token") String token) {
-        this.userService.testInfo(username, token);
-        return "test info";
+    public String getMailingList() {
+        this.userService.mailSchedule();
+        return "test";
     }
 
-    @GetMapping("/commit")
+    @GetMapping("/generate")
     @ResponseBody
-    public String getCommit(@RequestParam("username") String username) {
-        this.userService.todayCommit(username);
-        return "";
+    public String generateDummies() {
+        this.userService.saveDummyData();
+        return "test";
     }
 
     @GetMapping("/allow/push/{username}")

@@ -40,11 +40,14 @@ public class UserActivity {
 
     @Autowired
     public UserActivity(RestTemplateBuilder restTemplateBuilder,
-                        UserRepository userRepository, PushAllowedRepository paRepository) {
+                        UserRepository userRepository, PushAllowedRepository paRepository,
+                        EventsAPI eventsAPI, UsersAPI usersAPI) {
         this.restTemplate = restTemplateBuilder.build();
         this.logger = LoggerFactory.getLogger(UserActivity.class);
         this.userRepository = userRepository;
         this.paRepository = paRepository;
+        this.eventsAPI = eventsAPI;
+        this.usersAPI = usersAPI;
     }
 
     protected String getToken(String username) {
@@ -54,17 +57,14 @@ public class UserActivity {
 
     public boolean getUser(String token) {
         try {
-            Map<String, String> userInfo = this.usersAPI.getUser(this.restTemplate, this.apiURL, token);
+            Map<String, Object> userInfo = this.usersAPI.getUser(this.restTemplate, this.apiURL, token);
             this.saveUser(userInfo, token);
             return true;
         }
         catch (Exception e) {
+            logger.error(e.toString());
             return false;
         }
-    }
-
-    public void allowPush(String username) {
-        this.savePush(username);
     }
 
     public boolean checkCommits(String username) {
@@ -77,15 +77,15 @@ public class UserActivity {
         return true;
     }
 
-    protected void saveUser(Map<String, String> userInfo, String token) {
-        User user = User.builder().userId(Long.parseLong(userInfo.get("id")))
-                    .email(userInfo.get("email"))
-                    .nodeId(userInfo.get("node_id")).token(token)
-                    .username(userInfo.get("login")).build();
+    protected void saveUser(Map<String, Object> userInfo, String token) {
+        User user = User.builder().userId(Long.valueOf((Integer)userInfo.get("id")))
+                    .email(userInfo.get("email").toString())
+                    .nodeId(userInfo.get("node_id").toString()).token(token)
+                    .username(userInfo.get("login").toString()).build();
         this.userRepository.save(user);
     }
 
-    protected void savePush(String username) {
+    public void savePush(String username) {
         User user = this.userRepository.findByUsername(username);
         PushAllowed pa = PushAllowed.builder()
                 .user(user).build();
@@ -101,7 +101,6 @@ public class UserActivity {
 
         ResponseEntity<String> response =
                 this.restTemplate.exchange((this.apiURL + suffix), HttpMethod.GET, request, String.class);
-        // this.logger.info(response.getBody());
         return response.getBody();
     }
 
@@ -140,5 +139,39 @@ public class UserActivity {
         } finally {
             return todayCommits;
         }
+    }
+
+    public void saveDummyData(int count) {
+        Random r = new Random();
+        r.setSeed(System.nanoTime());
+        StringBuffer buffer = new StringBuffer();
+        String str = "";
+        int temp = 0;
+        List<User> dummies = new LinkedList<User>();
+        List<PushAllowed> pDummies = new LinkedList<PushAllowed>();
+        for (int c = 0; c < count; c++) {
+            for (int i = 0; i < 8; i++) {
+                int rint = r.nextInt(58) + 65;
+                rint = (rint > 90 && rint < 97)? rint + (r.nextInt(10) + 6) : rint;
+                buffer.append((char) rint);
+                temp += rint;
+                str = buffer.toString();
+            }
+            // save dummies to list
+            User user = User.builder().username(str)
+                    .email(String.format("%s@%s", str, "gmail.com"))
+                    .userId(Long.valueOf(temp))
+                    .nodeId(str)
+                    .token(str)
+                    .build();
+            dummies.add(user);
+            pDummies.add(PushAllowed.builder().user(user).build());
+            // flush buffer
+            buffer.delete(0, buffer.length());
+            temp = 0;
+        }
+        this.userRepository.saveAll(dummies);
+        // add to push allowed
+        this.paRepository.saveAll(pDummies);
     }
 }

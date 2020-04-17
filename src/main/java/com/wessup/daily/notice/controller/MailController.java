@@ -8,24 +8,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/mail")
+@RequestMapping("/x")
 public class MailController {
 
-    private MailService mailService;
-
-    @Autowired
-    public MailController(MailService mailService) {
-        this.mailService = mailService;
-    }
-
-    @GetMapping("/test")
-    public String sendMail(@RequestParam("email") String email) {
-        boolean result = this.mailService.send(email);
-        if (result) {
-            return "Email Sent";
-        }
-        else{
-            return "Email Sending Failed";
-        }
-    }
+//    private MailService mailService;
+//
+//    @Autowired
+//    public MailController(MailService mailService) {
+//        this.mailService = mailService;
+//    }
+//
+//    @GetMapping("/test")
+//    public String sendMail(@RequestParam("email") String email) {
+//        boolean result = this.mailService.send(email);
+//        if (result) {
+//            return "Email Sent";
+//        }
+//        else{
+//            return "Email Sending Failed";
+//        }
+//    }
 }

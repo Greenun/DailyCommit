@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// api documents
 // https://developer.github.com/v3/users/emails/
 // https://developer.github.com/v3/users/
 
@@ -21,8 +22,8 @@ public class UsersAPI extends BasicAuth {
         this.baseSuffix = "/user";
     }
 
-    public Map<String, String> getUser(RestTemplate restTemplate, String apiURL, String token) {
-        Map<String ,String> userInfo = this.getUserInfo(restTemplate, apiURL, token);
+    public Map<String, Object> getUser(RestTemplate restTemplate, String apiURL, String token) {
+        Map<String ,Object> userInfo = this.getUserInfo(restTemplate, apiURL, token);
         // one more request with username (for email)
         String email = this.getEmailByName(restTemplate, apiURL + baseSuffix, token);
         if (email == null) {
@@ -34,18 +35,18 @@ public class UsersAPI extends BasicAuth {
         return userInfo;
     }
 
-    private Map<String ,String> getUserInfo(RestTemplate restTemplate, String apiURL, String token) {
+    private Map<String ,Object> getUserInfo(RestTemplate restTemplate, String apiURL, String token) {
         ResponseEntity<HashMap> response =
                 this.apiExchange(restTemplate, apiURL + baseSuffix,
                         HttpMethod.GET, HashMap.class, this.setHeaders(token), null);
-        HashMap<String ,String> userInfo = response.getBody();
+        HashMap<String ,Object> userInfo = response.getBody();
 //        userInfo.put("token", token);
 
         return userInfo;
     }
 
     private String getEmailByName(RestTemplate restTemplate, String userURL, String token) {
-        // Map<String, String>
+        // Map<String, Object>
         // bad request 처리 필요
         String emailSuffix = "/emails";
         ResponseEntity<List> response =

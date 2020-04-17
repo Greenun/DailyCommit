@@ -1,13 +1,21 @@
 package com.wessup.daily.user.service;
 
+import com.wessup.daily.user.entity.PushAllowed;
 import com.wessup.daily.user.repository.PushAllowedRepository;
 import com.wessup.daily.user.service.oauth.OAuth;
 import com.wessup.daily.user.service.users.UserActivity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 
 @Service
 public class UserService {
@@ -21,6 +29,9 @@ public class UserService {
     private PushAllowedRepository paRepository;
 
     private MailProducer mailProducer;
+
+    @Value("${jpa.page.size}")
+    private Integer pageSize;
 
     @Autowired
     public UserService(OAuth auth, UserActivity userActivity,
@@ -45,39 +56,62 @@ public class UserService {
         return token;
     }
 
-    public void todayCommit(String username) {
-        boolean check = this.userActivity.checkCommits(username);
-        if (!check) {
-            // add to mailing list
+    public List chooseUser(List users) {
+        List<String> mailList = new ArrayList<String>();
+        for (Object user: users) {
+            if (!this.userActivity.checkCommits(user.toString())) {
+                // add to mail list
+                mailList.add(user.toString());
+            }
         }
-        // pass
+        return mailList;
     }
 
     @Scheduled(fixedDelay = 1000)
-    public void testSchedule() {
-        this.mailProducer.pushMessageTest();
+    public void fixedTask() {
+//        this.mailProducer.pushMessageTest();
+        return;
     }
 
-    @Scheduled(cron = "${cron.mail.rate}")
-    public void MailSchedule() {
-
+//    removed scheduled job for test
+//    @Scheduled(cron = "${cron.mail.rate}")
+    public void mailSchedule() {
+        long count = this.paRepository.count();
+        long iteration = (count % this.pageSize == 0) ? count / this.pageSize: (count / this.pageSize) + 1;
+        List<String> usernameList = new LinkedList<String>();
+        for (int i = 0; i < (int) iteration; i++) {
+            PageRequest page = PageRequest.of(i, this.pageSize); // Sort.by("bka")
+            List<PushAllowed> userList = this.paRepository.findAll(page).getContent();
+            for (PushAllowed temp: userList) {
+                usernameList.add(temp.getUser().getUsername());
+            }
+            this.mailProducer.MailTask(usernameList);
+            usernameList.clear();
+        }
     }
 
     public String commits(String username, String token) {
         return this.userActivity.allEvents(username, token);
     }
 
+    public void test() {
+        mailSchedule();
+    }
+
     public void testCommit(String username, String token) {
         this.userActivity.commitEvents(username);
     }
 
-    public void testInfo(String username, String token) {
-        this.auth.getEmailByName(username, token);
-    }
 
     public void allowPush(String username) {
-        // set return
+        logger.debug(String.format("Push Allowed User: %s", username));
+        this.userActivity.savePush(username);
     }
 
+    public void saveDummyData() {
+        Random r = new Random();
+        r.setSeed(System.nanoTime());
+        this.userActivity.saveDummyData(r.nextInt(32));
+    }
 
 }

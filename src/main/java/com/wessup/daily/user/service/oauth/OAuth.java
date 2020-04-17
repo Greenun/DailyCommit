@@ -20,11 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// rest template http request
-// handshake everytime...
-// https://a1010100z.tistory.com/entry/SpringBoot-RestTemplate-vs-Webclient%EC%9E%91%EC%84%B1%EC%A4%91
-// front : login redirect + transfer token to backend(in redirected url)
-
 @Component
 public class OAuth {
     private static final Logger logger = LoggerFactory.getLogger(OAuth.class);
@@ -105,7 +100,8 @@ public class OAuth {
         ResponseEntity<HashMap> response = this.apiExchange(this.apiURL + suffix, token, HttpMethod.GET, HashMap.class);
 
         HashMap<String ,String> userInfo = response.getBody();
-        logger.info(userInfo.get("access_token"));
+        logger.info(userInfo.toString());
+//        logger.info(userInfo.get("access_token"));
         userInfo.put("token", token);
         // one more request with username (for email)
         String email = this.getEmailByName(userInfo.get("login"), token);
