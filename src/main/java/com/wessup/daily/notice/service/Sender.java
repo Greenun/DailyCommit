@@ -26,16 +26,16 @@ public class Sender {
 
     @Async
     public void sendMail(String userEmail) throws MessagingException, InterruptedException {
-        System.out.println("Thread: " + Thread.currentThread().getId());
-//        MimeMessage message = this.emailSender.createMimeMessage();
-//        message.setSubject("Test Email Send");
-//        message.setFrom(new InternetAddress(this.smtpId));
-//        message.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(userEmail));
-//        message.setText("Test Send");
-//        message.setSentDate(new Date());
+//        System.out.println("Thread: " + Thread.currentThread().getId()); // for debug
+        MimeMessage message = this.emailSender.createMimeMessage();
+        message.setSubject("Test Email Send");
+        message.setFrom(new InternetAddress(this.smtpId));
+        message.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(userEmail));
+        message.setText("Test Send");
+        message.setSentDate(new Date());
 
 
-//        this.emailSender.send(message);
+        this.emailSender.send(message);
     }
 
     // multipart support
